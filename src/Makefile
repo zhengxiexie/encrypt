@@ -6,7 +6,7 @@ objects_db2  := db2.o utils.o error.o crypto.o
 objects_jni  := jni.o utils.o error.o crypto.o
 objects_ora  := oracle.o utils.o error.o crypto.o
 
-CFLAGS += -Werror -DNO_DEBUG
+CFLAGS += -Werror #-DNO_DEBUG
 
 .PHONY: all clean core db2 jni oracle
 
