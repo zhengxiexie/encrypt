@@ -1,0 +1,259 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include <sqludf.h>
+#include <time.h>
+#include <stdlib.h>
+
+#include "crypto.h"
+#include "error.h"
+#include "utils.h"
+
+struct local_t {
+    FILE * logfile;
+    time_t begin_time;
+    time_t end_time;
+    uint64_t row_count;
+    encrypt_context_t * enc_ctx;
+    decrypt_context_t * dec_ctx;
+};
+
+#define die(r) do { \
+    errcode = r; \
+    line = __LINE__; \
+    goto error; \
+} while (0)
+
+void SQL_API_FN db2_update(
+    SQLUDF_VARCHAR * text,
+    SQLUDF_VARCHAR * colid,
+    SQLUDF_VARCHAR * out,
+    SQLUDF_NULLIND * text_null,
+    SQLUDF_NULLIND * colid_null,
+    SQLUDF_NULLIND * out_null,
+    SQLUDF_TRAIL_ARGS_ALL) {
+
+    // For error handling
+    int line = 0, errcode = 0, ret = 0;
+
+    // restore enviroment stored in SCRATCHPAD
+    struct local_t    * l   = (struct local_t *)SQLUDF_SCRAT->data;
+    encrypt_context_t * enc_ctx = l->enc_ctx;
+    decrypt_context_t * dec_ctx = l->dec_ctx;
+    char buf[1024];
+
+    if (*colid_null || !colid[0]) die(ERROR_NULLCOLID);
+
+    switch (SQLUDF_CALLT) {
+        case SQLUDF_FIRST_CALL:
+            // First call, init everything
+            memset(l, 0, sizeof(struct local_t));
+            sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME"));
+            l->logfile    = fopen(buf, "a+");
+            l->begin_time = time(NULL);
+
+            // init encrypt context
+            if (!(enc_ctx = calloc(1, sizeof(encrypt_context_t))))
+                    die(ERROR_NOMEM);
+            if ((ret = init_encrypt_context(enc_ctx, colid))) die(ret);
+            l->enc_ctx = enc_ctx;
+
+            // init decrypt context
+            if (!(dec_ctx = calloc(1, sizeof(decrypt_context_t))))
+                    die(ERROR_NOMEM);
+            if ((ret = init_decrypt_context(dec_ctx))) die(ret);
+            l->dec_ctx = dec_ctx;
+
+            // write log
+            if (l->logfile) {
+                fprintf(l->logfile,
+                    "[%s] Starting UPDATE colid: %s, "
+                    "Algorithm: %s, Policy: %d, hold %d byte(s), "
+                    "md5: %s, compressing: %s\n",
+                    timestamp(buf), colid,
+                    enc_ctx->info.algo_name, enc_ctx->info.policy,
+                    enc_ctx->info.hold_bytes,
+                    enc_ctx->info.md5[0]? enc_ctx->info.md5: "builtin",
+                    enc_ctx->info.type == TYPE_NUMSTRING? "yes": "no");
+                fflush(l->logfile);
+            }
+
+        case SQLUDF_NORMAL_CALL:
+            *out_null = 0;
+            l->row_count++;
+            if ((ret = do_encrypt(enc_ctx, text, buf))) die(ret);
+            do_decrypt(dec_ctx, buf, out);
+            break;
+        case SQLUDF_FINAL_CALL:
+            l->end_time = time(NULL);
+
+            // write log if there is one
+            if  (l->logfile) {
+                fprintf(l->logfile,
+                    "[%s] Encrypt finished, %lu row in %ds\n",
+                    timestamp(buf), l->row_count,
+                    (int)(difftime(l->end_time, l->begin_time)));
+                fclose(l->logfile);
+            }
+            destroy_encrypt_context(enc_ctx);
+            destroy_decrypt_context(dec_ctx);
+        default: break;
+    }
+
+    return;
+
+error:
+    if (l->logfile) {
+        fprintf(l->logfile,
+            "[%s] ERROR: UPDATE fail colid: %s, Message: %s\n",
+            timestamp(buf), colid, errmsg[errcode]);
+        fclose(l->logfile);
+    }
+    if (enc_ctx) destroy_encrypt_context(enc_ctx);
+    if (dec_ctx) destroy_decrypt_context(dec_ctx);
+    // write error mesxsages
+    snprintf(SQLUDF_MSGTX, 69,
+        "[NOT A BUG] %d:%d %s", errcode, line, errmsg[errcode]);
+    strcpy(SQLUDF_STATE, "38900");
+    return;
+}
+
+void SQL_API_FN db2_encrypt(
+    SQLUDF_VARCHAR * text,
+    SQLUDF_VARCHAR * colid,
+    SQLUDF_VARCHAR * out,
+    SQLUDF_NULLIND * text_null,
+    SQLUDF_NULLIND * colid_null,
+    SQLUDF_NULLIND * out_null,
+    SQLUDF_TRAIL_ARGS_ALL) {
+
+    // For error handling
+    int line = 0, errcode = 0, ret = 0;
+
+    // restore enviroment stored in SCRATCHPAD
+    struct local_t    * l   = (struct local_t *)SQLUDF_SCRAT->data;
+    encrypt_context_t * ctx = l->enc_ctx;
+    char buf[1024];
+
+    if (*colid_null || !colid[0]) die(ERROR_NULLCOLID);
+
+    switch (SQLUDF_CALLT) {
+        case SQLUDF_FIRST_CALL:
+            // First call, init everything
+            memset(l, 0, sizeof(struct local_t));
+            sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME"));
+            l->logfile    = fopen(buf, "a+");
+            l->begin_time = time(NULL);
+
+            // init encrypt context
+            if (!(ctx = calloc(1, sizeof(encrypt_context_t))))
+                    die(ERROR_NOMEM);
+            if ((ret = init_encrypt_context(ctx, colid))) die(ret);
+            l->enc_ctx = ctx;
+
+            // write log
+            if (l->logfile) {
+                fprintf(l->logfile,
+                    "[%s] Starting encrypt colid: %s, "
+                    "Algorithm: %s, Policy: %d, hold %d byte(s), "
+                    "md5: %s, compressing: %s\n",
+                    timestamp(buf), colid, ctx->info.algo_name, ctx->info.policy,
+                    ctx->info.hold_bytes,
+                    ctx->info.md5[0]? ctx->info.md5: "builtin",
+                    ctx->info.type == TYPE_NUMSTRING? "yes": "no");
+                fflush(l->logfile);
+            }
+
+        case SQLUDF_NORMAL_CALL:
+            *out_null = 0;
+            l->row_count++;
+            if ((ret = do_encrypt(ctx, text, out))) die(ret);
+            break;
+        case SQLUDF_FINAL_CALL:
+            l->end_time = time(NULL);
+
+            // write log if there is one
+            if  (l->logfile) {
+                fprintf(l->logfile,
+                    "[%s] Encrypt finished, %lu row in %ds\n",
+                    timestamp(buf), l->row_count,
+                    (int)(difftime(l->end_time, l->begin_time)));
+
+                fclose(l->logfile);
+            }
+            destroy_encrypt_context(ctx);
+        default: break;
+    }
+
+    return;
+error:
+    if (l->logfile) {
+        fprintf(l->logfile,
+            "[%s] ERROR: Encrypt fail. colid: %s, Message: %s\n",
+            timestamp(buf), colid, errmsg[errcode]);
+        fclose(l->logfile);
+    }
+    if (ctx) destroy_encrypt_context(ctx);
+    // write error mesxsages
+    snprintf(SQLUDF_MSGTX, 69,
+        "[NOT A BUG] %d:%d %s", errcode, line, errmsg[errcode]);
+    strcpy(SQLUDF_STATE, "38900");
+    return;
+}
+
+void SQL_API_FN db2_decrypt(
+    SQLUDF_VARCHAR * text,
+    SQLUDF_VARCHAR * out,
+    SQLUDF_NULLIND * text_null,
+    SQLUDF_NULLIND * out_null,
+    SQLUDF_TRAIL_ARGS_ALL) {
+
+    struct local_t    * l   = (struct local_t *)(SQLUDF_SCRAT->data);
+    decrypt_context_t * ctx = l->dec_ctx;
+
+    int errcode = 0, line = 0, ret = 0;
+    char buf[1024];
+    switch (SQLUDF_CALLT) {
+        case SQLUDF_FIRST_CALL:
+            // First call, init everything
+            sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX);
+            l->logfile    = fopen(buf, "a+");
+            l->begin_time = time(NULL);
+
+            // init decrypt context
+            if (!(ctx = calloc(1, sizeof(decrypt_context_t)))) die(ERROR_NOMEM);
+            if ((ret = init_decrypt_context(ctx))) die(ret);
+            l->dec_ctx = ctx;
+
+        case SQLUDF_NORMAL_CALL:
+            // Do the encrypt
+            do_decrypt(ctx, text, out);
+            *out_null = 0;
+            l->row_count++;
+            break;
+        case SQLUDF_FINAL_CALL:
+            l->end_time = time(NULL);
+
+            // write log if there is one
+            if (l->logfile) {
+                fprintf(l->logfile,
+                    "[%s] Decrypt finished, %ld row in %ds\n",
+                    timestamp(buf), l->row_count,
+                    (int)(difftime(l->end_time, l->begin_time)));
+
+                fclose(l->logfile);
+            }
+            destroy_decrypt_context(ctx);
+        default: break;
+    }
+
+    return;
+
+error:
+    if (ctx) destroy_decrypt_context(ctx);
+    // write error messages
+    snprintf(SQLUDF_MSGTX, 69,
+        "[NOT A BUG] %d:%d %s", line, errcode, errmsg[errcode]);
+    strcpy(SQLUDF_STATE, "38900");
+    return;
+}
