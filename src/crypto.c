@@ -48,7 +48,7 @@ static int read_column_info_pputil(column_info_t * info, const char * colid) {
     int ret = 0;
     snprintf(buf, 1024, "%s/" PREFIX "/pputil colid %s", getenv("HOME"), colid);
 
-    // dbglog("Exec: %s\n", buf);
+	dbglog("Exec: %s\n", buf);
 
     FILE * pipe = popen(buf, "r");
     if (!pipe) {
