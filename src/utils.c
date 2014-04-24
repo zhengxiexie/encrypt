@@ -236,3 +236,26 @@ char * decode_hex(char * raw, const char * hex) {
     return raw;
 }
 
+/* beg 2014.04.23 zhenxie insert log to db */
+int insert_log_db( const char * db_log )
+{
+	int ret = 0;
+	char buf[1024];
+	snprintf(buf, 1024, "%s/" PREFIX "/pputil log %s", getenv("HOME"), db_log);
+	FILE * pipe = popen(buf, "r");
+	dbglog("Exec: %s\n", buf);
+	if (!pipe) {
+		ret = ERROR_PPUTIL;
+		return ret;
+	} else {
+		get_line(pipe, buf, 64);
+		if (strcmp(buf, "true")) {
+			dbglog("buf: %s\n", buf);
+			ret = ERROR_INSERT_DB;
+			if (pipe) pclose(pipe);
+			return ret;
+		}
+		return ret;
+	}
+}
+/* end 2014.04.23 zhenxie insert log to db */

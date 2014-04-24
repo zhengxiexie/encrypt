@@ -42,6 +42,14 @@
 #  define loghex(tag, p, len)
 #endif
 
+/* beg 2014.04.23 zhenxie insert log to db */
+#define INSERT_DB_LOG(tag)\
+	ret = insert_log_db( tag );\
+	if( ret != 0 ){\
+		die( ret );\
+	}
+/* end 2014.04.23 zhenxie insert log to db */
+
 size_t base64_decode(uint8_t * out, const char * in);
 size_t base64_encode(char * out, const uint8_t * in, size_t len);
 
@@ -56,5 +64,9 @@ uint8_t first_salt(const uint8_t *);
 uint8_t next_salt(uint8_t);
 
 int check_file_md5(const char *, const char *);
+
+/* beg 2014.04.23 zhenxie insert log to db */
+int insert_log_db( const char * );
+/* end 2014.04.23 zhenxie insert log to db */
 
 #endif

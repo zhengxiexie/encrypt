@@ -31,7 +31,8 @@ void SQL_API_FN db2_update(
     SQLUDF_NULLIND * text_null,
     SQLUDF_NULLIND * colid_null,
     SQLUDF_NULLIND * out_null,
-    SQLUDF_TRAIL_ARGS_ALL) {
+    SQLUDF_TRAIL_ARGS_ALL)
+{
 
     // For error handling
     int line = 0, errcode = 0, ret = 0;
@@ -41,10 +42,12 @@ void SQL_API_FN db2_update(
     encrypt_context_t * enc_ctx = l->enc_ctx;
     decrypt_context_t * dec_ctx = l->dec_ctx;
     char buf[1024];
+	char db_log[1024];
 
     if (*colid_null || !colid[0]) die(ERROR_NULLCOLID);
 
-    switch (SQLUDF_CALLT) {
+    switch (SQLUDF_CALLT)
+   	{
         case SQLUDF_FIRST_CALL:
             // First call, init everything
             memset(l, 0, sizeof(struct local_t));
@@ -64,9 +67,9 @@ void SQL_API_FN db2_update(
             if ((ret = init_decrypt_context(dec_ctx))) die(ret);
             l->dec_ctx = dec_ctx;
 
-            // write log
-            if (l->logfile) {
-                fprintf(l->logfile,
+
+			/* beg 2014.04.23 zhengxie insert log to db */
+			sprintf( db_log,
                     "[%s] Starting UPDATE colid: %s, "
                     "Algorithm: %s, Policy: %d, hold %d byte(s), "
                     "md5: %s, compressing: %s\n",
@@ -75,6 +78,13 @@ void SQL_API_FN db2_update(
                     enc_ctx->info.hold_bytes,
                     enc_ctx->info.md5[0]? enc_ctx->info.md5: "builtin",
                     enc_ctx->info.type == TYPE_NUMSTRING? "yes": "no");
+
+			INSERT_DB_LOG( db_log );
+			/* end 2014.04.23 zhengxie insert log to db */
+
+            // write log
+            if (l->logfile) {
+                fputs( db_log, l->logfile );
                 fflush(l->logfile);
             }
 
@@ -84,17 +94,33 @@ void SQL_API_FN db2_update(
             if ((ret = do_encrypt(enc_ctx, text, buf))) die(ret);
             do_decrypt(dec_ctx, buf, out);
             break;
+
         case SQLUDF_FINAL_CALL:
             l->end_time = time(NULL);
 
-            // write log if there is one
-            if  (l->logfile) {
-                fprintf(l->logfile,
+			/* beg 2014.04.23 zhenxie insert log to db */
+			sprintf( db_log,
                     "[%s] Encrypt finished, %lu row in %ds\n",
                     timestamp(buf), l->row_count,
                     (int)(difftime(l->end_time, l->begin_time)));
+
+			INSERT_DB_LOG( db_log )
+			/* end 2014.04.23 zhenxie insert log to db */
+
+            // write log if there is one
+            if  (l->logfile) {
+
+				fputs( db_log, l->logfile );
+                /*fprintf(l->logfile,*/
+                    /*"[%s] Encrypt finished, %lu row in %ds\n",*/
+                    /*timestamp(buf), l->row_count,*/
+                    /*(int)(difftime(l->end_time, l->begin_time)));*/
                 fclose(l->logfile);
             }
+
+
+                fputs( db_log, l->logfile );
+
             destroy_encrypt_context(enc_ctx);
             destroy_decrypt_context(dec_ctx);
         default: break;
@@ -103,10 +129,18 @@ void SQL_API_FN db2_update(
     return;
 
 error:
-    if (l->logfile) {
-        fprintf(l->logfile,
+	/* beg 2014.04.23 zhenxie insert log to db */
+	sprintf( db_log,
             "[%s] ERROR: UPDATE fail colid: %s, Message: %s\n",
             timestamp(buf), colid, errmsg[errcode]);
+
+	INSERT_DB_LOG( db_log )
+	/* end 2014.04.23 zhenxie insert log to db */
+    if (l->logfile) {
+        /*fprintf(l->logfile,*/
+            /*"[%s] ERROR: UPDATE fail colid: %s, Message: %s\n",*/
+            /*timestamp(buf), colid, errmsg[errcode]);*/
+		fputs( db_log, l->logfile );
         fclose(l->logfile);
     }
     if (enc_ctx) destroy_encrypt_context(enc_ctx);
@@ -125,7 +159,8 @@ void SQL_API_FN db2_encrypt(
     SQLUDF_NULLIND * text_null,
     SQLUDF_NULLIND * colid_null,
     SQLUDF_NULLIND * out_null,
-    SQLUDF_TRAIL_ARGS_ALL) {
+    SQLUDF_TRAIL_ARGS_ALL)
+{
 
     // For error handling
     int line = 0, errcode = 0, ret = 0;
@@ -134,10 +169,12 @@ void SQL_API_FN db2_encrypt(
     struct local_t    * l   = (struct local_t *)SQLUDF_SCRAT->data;
     encrypt_context_t * ctx = l->enc_ctx;
     char buf[1024];
+	char db_log[1024];
 
     if (*colid_null || !colid[0]) die(ERROR_NULLCOLID);
 
-    switch (SQLUDF_CALLT) {
+    switch (SQLUDF_CALLT)
+   	{
         case SQLUDF_FIRST_CALL:
             // First call, init everything
             memset(l, 0, sizeof(struct local_t));
@@ -151,16 +188,23 @@ void SQL_API_FN db2_encrypt(
             if ((ret = init_encrypt_context(ctx, colid))) die(ret);
             l->enc_ctx = ctx;
 
-            // write log
-            if (l->logfile) {
-                fprintf(l->logfile,
-                    "[%s] Starting encrypt colid: %s, "
+
+			/* beg 2014.04.23 zhenxie insert log to db */
+			sprintf( db_log,
+                    "\"[%s] Starting encrypt colid: %s, "
                     "Algorithm: %s, Policy: %d, hold %d byte(s), "
-                    "md5: %s, compressing: %s\n",
+                    "md5: %s, compressing: %s\"\n",
                     timestamp(buf), colid, ctx->info.algo_name, ctx->info.policy,
                     ctx->info.hold_bytes,
                     ctx->info.md5[0]? ctx->info.md5: "builtin",
                     ctx->info.type == TYPE_NUMSTRING? "yes": "no");
+
+			INSERT_DB_LOG( db_log )
+			/* end 2014.04.23 zhenxie insert log to db */
+
+            // write log
+            if (l->logfile) {
+                fputs( db_log, l->logfile );
                 fflush(l->logfile);
             }
 
@@ -174,10 +218,20 @@ void SQL_API_FN db2_encrypt(
 
             // write log if there is one
             if  (l->logfile) {
-                fprintf(l->logfile,
+
+				/* beg 2014.04.23 zhenxie insert log to db */
+				sprintf( db_log,
                     "[%s] Encrypt finished, %lu row in %ds\n",
                     timestamp(buf), l->row_count,
                     (int)(difftime(l->end_time, l->begin_time)));
+				INSERT_DB_LOG( db_log )
+				/* end 2014.04.23 zhenxie insert log to db */
+
+                fputs( db_log, l->logfile );
+                /*fprintf(l->logfile,*/
+                    /*"[%s] Encrypt finished, %lu row in %ds\n",*/
+                    /*timestamp(buf), l->row_count,*/
+                    /*(int)(difftime(l->end_time, l->begin_time)));*/
 
                 fclose(l->logfile);
             }
@@ -188,9 +242,15 @@ void SQL_API_FN db2_encrypt(
     return;
 error:
     if (l->logfile) {
-        fprintf(l->logfile,
+		sprintf( db_log,
             "[%s] ERROR: Encrypt fail. colid: %s, Message: %s\n",
             timestamp(buf), colid, errmsg[errcode]);
+		INSERT_DB_LOG( db_log )
+
+		fputs( db_log, l->logfile );
+        /*fprintf(l->logfile,*/
+            /*"[%s] ERROR: Encrypt fail. colid: %s, Message: %s\n",*/
+            /*timestamp(buf), colid, errmsg[errcode]);*/
         fclose(l->logfile);
     }
     if (ctx) destroy_encrypt_context(ctx);
@@ -208,13 +268,17 @@ void SQL_API_FN db2_decrypt(
     SQLUDF_NULLIND * out_null,
     SQLUDF_TRAIL_ARGS_ALL) {
 
+	dbglog("1\n");
     struct local_t    * l   = (struct local_t *)(SQLUDF_SCRAT->data);
     decrypt_context_t * ctx = l->dec_ctx;
 
     int errcode = 0, line = 0, ret = 0;
     char buf[1024];
+	char db_log[1024];
+
     switch (SQLUDF_CALLT) {
         case SQLUDF_FIRST_CALL:
+			dbglog("2\n");
             // First call, init everything
             sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX);
             l->logfile    = fopen(buf, "a+");
@@ -226,20 +290,30 @@ void SQL_API_FN db2_decrypt(
             l->dec_ctx = ctx;
 
         case SQLUDF_NORMAL_CALL:
+			dbglog("3\n");
             // Do the encrypt
             do_decrypt(ctx, text, out);
             *out_null = 0;
             l->row_count++;
             break;
         case SQLUDF_FINAL_CALL:
+			dbglog("4\n");
             l->end_time = time(NULL);
+
+			sprintf( db_log, 
+                    "[%s] Decrypt finished, %ld row in %ds\n",
+                    timestamp(buf), l->row_count,
+                    (int)(difftime(l->end_time, l->begin_time))
+					);
+			INSERT_DB_LOG( db_log )
 
             // write log if there is one
             if (l->logfile) {
-                fprintf(l->logfile,
-                    "[%s] Decrypt finished, %ld row in %ds\n",
-                    timestamp(buf), l->row_count,
-                    (int)(difftime(l->end_time, l->begin_time)));
+                /*fprintf(l->logfile,*/
+                    /*"[%s] Decrypt finished, %ld row in %ds\n",*/
+                    /*timestamp(buf), l->row_count,*/
+                    /*(int)(difftime(l->end_time, l->begin_time)));*/
+				fputs( db_log, l->logfile );
 
                 fclose(l->logfile);
             }

@@ -20,4 +20,5 @@ const char * errmsg[] = {
     "Fail to update column status",     // updating status fail
     "No more memory",                   // NO Memory
     "Already encrypted",                // Alreay encrypted
+    "Insert db failed",                // Insert db failed
 };

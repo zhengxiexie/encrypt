@@ -90,7 +90,10 @@ static int stream_cipher(void * ctx,
     int p = 0, pk = 0;
     uint8_t * key = (uint8_t *) ctx;
     uint8_t salt = first_salt(key);
-    for (p = pk = 0; in[p]; p++, pk++) {
+	/* beg 2014.04.23 zhengxie modify algorithm bug */
+    /*for (p = pk = 0; in[p]; p++, pk++) {*/
+	for (p = pk = 0; p < in_len; p++, pk++) {
+	/* end 2014.04.23 zhengxie modify algorithm bug */
         // need another salt?
         if (pk == KEY_SIZE) {
             pk = 0;
@@ -112,7 +115,10 @@ static int shift_encrypt(void * ctx,
     uint8_t salt = first_salt(key);
 
     dbglog("==============\n");
-    for (p = pk = 0; in[p]; p++, pk++) {
+	/* beg 2014.04.23 zhengxie modify algorithm bug */
+    /*for (p = pk = 0; in[p]; p++, pk++) {*/
+	for (p = pk = 0; p < in_len; p++, pk++) {
+	/* end 2014.04.23 zhengxie modify algorithm bug */
         // need another salt?
         if (pk == KEY_SIZE) {
             pk = 0;
@@ -133,7 +139,10 @@ static int shift_decrypt(void * ctx,
     uint8_t * key = (uint8_t *) ctx;
     uint8_t salt = first_salt(key);
 
-    for (p = pk = 0; in[p]; p++, pk++) {
+	/* beg 2014.04.23 zhengxie modify algorithm bug */
+    /*for (p = pk = 0; in[p]; p++, pk++) {*/
+    for (p = pk = 0; p < in_len; p++, pk++) {
+	/* end 2014.04.23 zhengxie modify algorithm bug */
         // need another salt?
         if (pk == KEY_SIZE) {
             pk = 0;
@@ -156,7 +165,10 @@ static int map_encrypt(void * ctx,
     const uint8_t * in, size_t in_len, uint8_t * out) {
     int p = 0;
     uint8_t * map = ((struct map_ctx_t *)ctx)->map;
-    for (p =  0; in[p]; p++) out[p] = map[in[p]];
+	/* beg 2014.04.23 zhengxie modify algorithm bug */
+    /*for (p =  0; in[p]; p++) out[p] = map[in[p]];*/
+    for (p =  0; p < in_len; p++) out[p] = map[in[p]];
+	/* end 2014.04.23 zhengxie modify algorithm bug */
     out[p] = 0;
     return p;
 }
@@ -165,7 +177,10 @@ static int map_decrypt(void * ctx,
     const uint8_t * in, size_t in_len, uint8_t * out) {
     int p = 0;
     uint8_t * rmap = ((struct map_ctx_t *)ctx)->rmap;
-    for (p = 0; in[p]; p++) out[p] = rmap[in[p]];
+	/* beg 2014.04.23 zhengxie modify algorithm bug */
+    /*for (p = 0; in[p]; p++) out[p] = rmap[in[p]];*/
+    for (p = 0; p < in_len; p++) out[p] = rmap[in[p]];
+	/* end 2014.04.23 zhengxie modify algorithm bug */
     out[p] = 0;
     return p;
 }

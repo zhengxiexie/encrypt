@@ -20,4 +20,5 @@ extern const char * errmsg[];
 #define ERROR_UPDATE_STATUS (15)
 #define ERROR_NOMEM         (16)
 #define ERROR_ALREADY_ENC   (17)
+#define ERROR_INSERT_DB     (18)
 #endif

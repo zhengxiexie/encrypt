@@ -199,6 +199,8 @@ int do_encrypt(encrypt_context_t * ctx, const char * in, char * out) {
                            ctx->impl.builtin->enc_func:
                            ctx->impl.userdef->cipher;
         out_len = f(ctx->enc_ctx, to_be_enc, enc_len, (uint8_t *)buf_enc);
+
+		/*to_be_enc-输入, buf_enc-输出*/
         loghex(to_be_enc, buf_enc, out_len);
 
         // base64 encode it and store it into out
@@ -213,6 +215,7 @@ int do_encrypt(encrypt_context_t * ctx, const char * in, char * out) {
 // decrypt API
 
 int init_decrypt_context( decrypt_context_t * ctx) {
+	dbglog("1\n");
     // doing nothing
     ctx->policy = -1;
     return 0;
@@ -367,6 +370,7 @@ int do_decrypt(decrypt_context_t * ctx, const char * in, char * out) {
                       dec_ctx->impl.userdef->cipher;
     f(dec_ctx->dec_ctx, buf, enc_len, buf_dec);
 
+	/*buf-输入, buf_dec输出*/
     loghex(buf_dec, buf, enc_len);
 
     // flatten?
