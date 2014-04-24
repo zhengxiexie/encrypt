@@ -203,8 +203,8 @@ static void * basic_init(const uint8_t * key) {
 }
 
 static void basic_free(void * ctx) {
-    dbglog("basic_free called\n");
     if (ctx) free(ctx);
+    dbglog("basic free done!\n");
 }
 
 // }}}

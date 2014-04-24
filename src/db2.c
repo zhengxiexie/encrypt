@@ -49,6 +49,7 @@ void SQL_API_FN db2_update(
     switch (SQLUDF_CALLT)
    	{
         case SQLUDF_FIRST_CALL:
+			dbglog("enter into db2_update\n");
             // First call, init everything
             memset(l, 0, sizeof(struct local_t));
             sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME"));
@@ -67,12 +68,13 @@ void SQL_API_FN db2_update(
             if ((ret = init_decrypt_context(dec_ctx))) die(ret);
             l->dec_ctx = dec_ctx;
 
+			dbglog("init decrypt context done!\n");
 
 			/* beg 2014.04.23 zhengxie insert log to db */
 			sprintf( db_log,
-                    "[%s] Starting UPDATE colid: %s, "
+                    "\"[%s] Starting UPDATE colid: %s, "
                     "Algorithm: %s, Policy: %d, hold %d byte(s), "
-                    "md5: %s, compressing: %s\n",
+                    "md5: %s, compressing: %s\"\n",
                     timestamp(buf), colid,
                     enc_ctx->info.algo_name, enc_ctx->info.policy,
                     enc_ctx->info.hold_bytes,
@@ -100,7 +102,7 @@ void SQL_API_FN db2_update(
 
 			/* beg 2014.04.23 zhenxie insert log to db */
 			sprintf( db_log,
-                    "[%s] Encrypt finished, %lu row in %ds\n",
+                    "\"[%s] Encrypt finished, %lu row in %ds\"\n",
                     timestamp(buf), l->row_count,
                     (int)(difftime(l->end_time, l->begin_time)));
 
@@ -131,7 +133,7 @@ void SQL_API_FN db2_update(
 error:
 	/* beg 2014.04.23 zhenxie insert log to db */
 	sprintf( db_log,
-            "[%s] ERROR: UPDATE fail colid: %s, Message: %s\n",
+            "\"[%s] ERROR: UPDATE fail colid: %s, Message: %s\"\n",
             timestamp(buf), colid, errmsg[errcode]);
 
 	INSERT_DB_LOG( db_log )
@@ -162,6 +164,7 @@ void SQL_API_FN db2_encrypt(
     SQLUDF_TRAIL_ARGS_ALL)
 {
 
+
     // For error handling
     int line = 0, errcode = 0, ret = 0;
 
@@ -176,6 +179,7 @@ void SQL_API_FN db2_encrypt(
     switch (SQLUDF_CALLT)
    	{
         case SQLUDF_FIRST_CALL:
+			dbglog("enter into db2_encrypt\n");
             // First call, init everything
             memset(l, 0, sizeof(struct local_t));
             sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME"));
@@ -188,6 +192,7 @@ void SQL_API_FN db2_encrypt(
             if ((ret = init_encrypt_context(ctx, colid))) die(ret);
             l->enc_ctx = ctx;
 
+			dbglog("init encrypt context done!\n");
 
 			/* beg 2014.04.23 zhenxie insert log to db */
 			sprintf( db_log,
@@ -201,6 +206,7 @@ void SQL_API_FN db2_encrypt(
 
 			INSERT_DB_LOG( db_log )
 			/* end 2014.04.23 zhenxie insert log to db */
+
 
             // write log
             if (l->logfile) {
@@ -221,9 +227,10 @@ void SQL_API_FN db2_encrypt(
 
 				/* beg 2014.04.23 zhenxie insert log to db */
 				sprintf( db_log,
-                    "[%s] Encrypt finished, %lu row in %ds\n",
+                    "\"[%s] Encrypt finished, %lu row in %ds\"\n",
                     timestamp(buf), l->row_count,
                     (int)(difftime(l->end_time, l->begin_time)));
+
 				INSERT_DB_LOG( db_log )
 				/* end 2014.04.23 zhenxie insert log to db */
 
@@ -243,7 +250,7 @@ void SQL_API_FN db2_encrypt(
 error:
     if (l->logfile) {
 		sprintf( db_log,
-            "[%s] ERROR: Encrypt fail. colid: %s, Message: %s\n",
+            "\"[%s] ERROR: Encrypt fail. colid: %s, Message: %s\"\n",
             timestamp(buf), colid, errmsg[errcode]);
 		INSERT_DB_LOG( db_log )
 
@@ -268,7 +275,6 @@ void SQL_API_FN db2_decrypt(
     SQLUDF_NULLIND * out_null,
     SQLUDF_TRAIL_ARGS_ALL) {
 
-	dbglog("1\n");
     struct local_t    * l   = (struct local_t *)(SQLUDF_SCRAT->data);
     decrypt_context_t * ctx = l->dec_ctx;
 
@@ -278,8 +284,8 @@ void SQL_API_FN db2_decrypt(
 
     switch (SQLUDF_CALLT) {
         case SQLUDF_FIRST_CALL:
-			dbglog("2\n");
             // First call, init everything
+			dbglog("enter into db2_decrypt\n");
             sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX);
             l->logfile    = fopen(buf, "a+");
             l->begin_time = time(NULL);
@@ -288,25 +294,25 @@ void SQL_API_FN db2_decrypt(
             if (!(ctx = calloc(1, sizeof(decrypt_context_t)))) die(ERROR_NOMEM);
             if ((ret = init_decrypt_context(ctx))) die(ret);
             l->dec_ctx = ctx;
+			dbglog("init encrypt context done!\n");
 
         case SQLUDF_NORMAL_CALL:
-			dbglog("3\n");
             // Do the encrypt
             do_decrypt(ctx, text, out);
             *out_null = 0;
             l->row_count++;
             break;
         case SQLUDF_FINAL_CALL:
-			dbglog("4\n");
             l->end_time = time(NULL);
 
-			sprintf( db_log, 
-                    "[%s] Decrypt finished, %ld row in %ds\n",
+			sprintf( db_log,
+                    "\"[%s] Decrypt finished, %ld row in %ds\"\n",
                     timestamp(buf), l->row_count,
                     (int)(difftime(l->end_time, l->begin_time))
 					);
 			INSERT_DB_LOG( db_log )
 
+			dbglog(db_log);
             // write log if there is one
             if (l->logfile) {
                 /*fprintf(l->logfile,*/

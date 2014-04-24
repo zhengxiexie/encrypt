@@ -21,7 +21,8 @@
 #  define dbglog(...) do { \
     FILE * __l = fopen("/tmp/ppdbg.log", "a+"); \
     if (!__l) break; \
-    fprintf(__l, "[%s:%d]: ", __FILE__, __LINE__); \
+	char tmp[1024]; \
+    fprintf(__l, "[%s][%-15s:%4d]: ", timestamp(tmp), __FILE__, __LINE__); \
     fprintf(__l, __VA_ARGS__); \
     fclose(__l); \
 } while (0)
@@ -34,7 +35,7 @@
         __bytes[__i * 2 + 1] = "0123456789abcdef"[(int)p[__i] % 16]; \
     } \
     __bytes[__i * 2] = 0; \
-    dbglog("[%s] %d: %s\n", tag, len,  __bytes); \
+    dbglog("[plain:%s] [%d bytes] [cypher:%s]\n", tag, len,  __bytes); \
 } while(0)
 
 #else

@@ -48,7 +48,7 @@ static int read_column_info_pputil(column_info_t * info, const char * colid) {
     int ret = 0;
     snprintf(buf, 1024, "%s/" PREFIX "/pputil colid %s", getenv("HOME"), colid);
 
-	dbglog("Exec: %s\n", buf);
+	dbglog("call: %s\n", buf);
 
     FILE * pipe = popen(buf, "r");
     if (!pipe) {
@@ -88,7 +88,7 @@ int init_encrypt_context(encrypt_context_t * ctx, const char * colid) {
     column_info_t * info = &ctx->info;
     if ((ret = read_column_info_pputil(info, colid))) return ret;
 
-    dbglog("passing read_column_info\n");
+    /*dbglog("passing read_column_info\n");*/
 
     // then, lookup in what we already implemented
     const crypto_t * builtin = NULL;
@@ -99,9 +99,7 @@ int init_encrypt_context(encrypt_context_t * ctx, const char * colid) {
     if (builtin) {
         ctx->how = CIPHER_BUILTIN;
         ctx->impl.builtin = builtin;
-        dbglog("ENCRYPT: calling init\n");
         ctx->enc_ctx = builtin->ctx_new(info->key);
-        dbglog("ENCRYPT: init done\n");
     } else {
 #ifndef NO_LIBDL
         // try to find userdefined algorithm
@@ -144,11 +142,11 @@ int init_encrypt_context(encrypt_context_t * ctx, const char * colid) {
 }
 
 void destroy_encrypt_context(encrypt_context_t * ctx) {
-    dbglog("Freeing ctx: %p, *real* ctx: %p\n", ctx, ctx->enc_ctx);
+    dbglog("freeing ctx: %p, real ctx: %p\n", ctx, ctx->enc_ctx);
     if (ctx->enc_ctx) {
         switch (ctx->how) {
         case CIPHER_BUILTIN:
-            dbglog("Freeing builtin: %s\n", ctx->impl.builtin->name);
+            dbglog("freeing builtin: %s\n", ctx->impl.builtin->name);
             if (ctx->enc_ctx) ctx->impl.builtin->ctx_free(ctx->enc_ctx);
             break;
         case CIPHER_USERDEF:
@@ -159,7 +157,7 @@ void destroy_encrypt_context(encrypt_context_t * ctx) {
         }
     }
     free(ctx);
-    dbglog("ctx freed\n");
+    dbglog("encrypt context free done!\n");
 }
 
 int do_encrypt(encrypt_context_t * ctx, const char * in, char * out) {
@@ -209,6 +207,7 @@ int do_encrypt(encrypt_context_t * ctx, const char * in, char * out) {
         strcpy(out, in);
     }
 
+	dbglog("encrypt done!\n");
     return 0;
 }
 
@@ -380,6 +379,7 @@ int do_decrypt(decrypt_context_t * ctx, const char * in, char * out) {
         flatten_numstring(buf_dec, out + encp);
     }
 
+	dbglog("decrypt done!");
     return 0;
 return_plain:
     strcpy(out, in);
