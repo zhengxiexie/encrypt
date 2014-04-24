@@ -160,7 +160,8 @@ void destroy_encrypt_context(encrypt_context_t * ctx) {
     dbglog("encrypt context free done!\n");
 }
 
-int do_encrypt(encrypt_context_t * ctx, const char * in, char * out) {
+int do_encrypt(encrypt_context_t * ctx, const char * in, char * out)
+{
     int in_len = strlen(in), ret = 0, out_len = 0;
     uint8_t buf[1024], buf_enc[1024];
     const uint8_t * to_be_enc = NULL;
@@ -214,7 +215,6 @@ int do_encrypt(encrypt_context_t * ctx, const char * in, char * out) {
 // decrypt API
 
 int init_decrypt_context( decrypt_context_t * ctx) {
-	dbglog("1\n");
     // doing nothing
     ctx->policy = -1;
     return 0;
@@ -332,9 +332,14 @@ static decrypt_context_t * find_or_new_dec_ctx(
     return new_ctx;
 }
 
-int do_decrypt(decrypt_context_t * ctx, const char * in, char * out) {
+int do_decrypt(decrypt_context_t * ctx, const char * in, char * out)
+{
     uint8_t buf[2048], buf_dec[2048];
     int  data_type = 0, in_len = 0, policy = 0, encp = 0, enc_len = 0;
+
+	/* beg 2014.04.23 zhengxie modify a bug */
+	int found_policy = 0;
+	/* end 2014.04.23 zhengxie modify a bug */
 
     // in sanity check... Magic here
     if (!in) goto return_plain;
@@ -342,14 +347,25 @@ int do_decrypt(decrypt_context_t * ctx, const char * in, char * out) {
     if (in_len < 4) goto return_plain;
 
     // findout where to start decrypt
-    for (encp = 0; encp < in_len - 3; encp++) {
+    for (encp = 0; encp < in_len - 3; encp++)
+   	{
         if (in[encp] == 0x03 || in[encp] == 0x04) {
             data_type = in[encp];
             policy   = ((uint8_t)in[encp + 1] - 1) * 255
                      + ((uint8_t)in[encp + 2] - 1);
+
+			/* beg 2014.04.23 zhengxie modify a bug */
+			found_policy = 1;
+			/* end 2014.04.23 zhengxie modify a bug */
             break;
         }
     }
+
+	/* beg 2014.04.23 zhengxie modify a bug */
+	if( !found_policy ){
+		goto return_plain;
+	}
+	/* end 2014.04.23 zhengxie modify a bug */
 
     decrypt_context_t * dec_ctx = find_or_new_dec_ctx(ctx, policy);
 

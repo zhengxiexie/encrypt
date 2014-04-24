@@ -312,7 +312,6 @@ void SQL_API_FN db2_decrypt(
 					);
 			INSERT_DB_LOG( db_log )
 
-			dbglog(db_log);
             // write log if there is one
             if (l->logfile) {
                 /*fprintf(l->logfile,*/
