@@ -78,4 +78,3 @@ JNIEXPORT void JNICALL Java_com_asiainfo_biframe_privacyprotection_util_DecryptC
     if (j_charset) (*env)->DeleteGlobalRef(env, (jobject)j_charset);
     if (logfile) fclose(logfile);
 }
-

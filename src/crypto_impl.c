@@ -62,7 +62,8 @@ def_cipher_func(aes,  EVP_aes_256_cbc);
 def_cipher_func(des,  EVP_des_cbc);
 def_cipher_func(3des, EVP_des_ede3_cbc);
 def_cipher_func(rc4,  EVP_rc4);
-def_cipher_func(rc5,  EVP_rc5_32_12_16_cbc);
+/* beg 2014.05.06 zhengxie if compiled by cygwin on windows, must comment this, don't ask me why, it confused me 5 days, shit!  */
+/*def_cipher_func(rc5,  EVP_rc5_32_12_16_cbc);*/
 
 static void * EVP_ctx_init(const uint8_t * key) {
     struct evp_ctx_t * evp_ctx = calloc(1, sizeof(struct evp_ctx_t));

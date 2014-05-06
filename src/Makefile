@@ -6,7 +6,8 @@ objects_db2  := db2.o utils.o error.o crypto.o
 objects_jni  := jni.o utils.o error.o crypto.o
 objects_ora  := oracle.o utils.o error.o crypto.o
 
-CFLAGS += -Werror #-DNO_DEBUG
+#CFLAGS += -Werror #-DNO_LIBDL #-DNO_DEBUG
+CFLAGS += -Wall #-DNO_LIBDL #-DNO_DEBUG
 
 .PHONY: all clean core db2 jni oracle
 
@@ -46,10 +47,9 @@ jni.c: jni.h crypto.h utils.h error.h
 
 dbutils.o: $(DBTYPE)utils.c
 	$(CC) $(PIC) $< $(CFLAGS) $(DB_CFLAGS) -c -o $@
-    
+
 clean:
 	rm -f db2utils.c $(objects_dbutils)
 	rm -f $(objects_db2) $(objects_jni) *.so pputil
 	rm -f $(objects_ora) *.so pputil
 	rm -f test*.c a.out *.bnd
-

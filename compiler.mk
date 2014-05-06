@@ -22,9 +22,8 @@ SHARED  = -shared
 # SHARED  = -Wl,-b
 
 # xlc 配置
-# CC      = xlc
-# CFLAGS  = -O2 -g -q64 -D_REENTRANT
-# LDFLAGS = -ldl -q64
-# PIC     =
-# SHARED  = -qmkshrobj
-
+#CC      = xlc
+#CFLAGS  = -O2 -g -q64 -D_REENTRANT
+#LDFLAGS = -ldl -q64
+#PIC     =
+#SHARED  = -qmkshrobj

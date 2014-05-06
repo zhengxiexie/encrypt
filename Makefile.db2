@@ -1,15 +1,15 @@
 RNUM = $(shell echo $$RANDOM)
-LD_LIBRARY_PATH := 
+LD_LIBRARY_PATH :=
 
 # DB2
-DB_CFLAGS  = -I $(DB2PATH)/include -D_DB2=1 
-DB_LDFLAGS = -L $(DB2PATH)/lib64 -lpthread  
+DB_CFLAGS  = -I $(DB2PATH)/include -D_DB2=1
+DB_LDFLAGS = -L $(DB2PATH)/lib64 -lpthread
 
 # JNI 设置
 JNI_CLASSNAME = com.asiainfo.biframe.privacyprotection.util.DecryptContext
 JNI_CFLAGS  = -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/$(OS)
-JNI_LDFLAGS = 
-JAVAH = $(JAVA_HOME)/bin/javah -classpath $(CLASS_PATH) 
+JNI_LDFLAGS =
+JAVAH = $(JAVA_HOME)/bin/javah -classpath $(CLASS_PATH)
 
 # openssl
 OPENSSL_LIB += ../libcrypto.a
@@ -51,4 +51,3 @@ DATABASE = pp
 USERNAME = pp
 PASSWORD = pp
 SCHEMA   = pp
-
