@@ -26,7 +26,7 @@ static const struct  crypto_t {
     {"DES",    EVP_ctx_init, EVP_ctx_free, encrypt_des,   decrypt_des},
     {"RC4",    EVP_ctx_init, EVP_ctx_free, encrypt_rc4,   decrypt_rc4},
 	/* beg 2014.05.06 zhengxie if compiled by cygwin on windows, must comment this, don't ask me why, it confused me 5 days, shit!  */
-    /*{"RC5",    EVP_ctx_init, EVP_ctx_free, encrypt_rc5,   decrypt_rc5},*/
+	{"RC5",    EVP_ctx_init, EVP_ctx_free, encrypt_rc5,   decrypt_rc5},
     {NULL, NULL, NULL, NULL, NULL}, // only chaos beyond this fine line
 };
 

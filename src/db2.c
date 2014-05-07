@@ -93,8 +93,12 @@ void SQL_API_FN db2_update(
         case SQLUDF_NORMAL_CALL:
             *out_null = 0;
             l->row_count++;
-            if ((ret = do_encrypt(enc_ctx, text, buf))) die(ret);
-            do_decrypt(dec_ctx, buf, out);
+			/* beg 2014.05.07 zhengxie bug here, should get cypher in and cypher out */
+            /*if ((ret = do_encrypt(enc_ctx, text, buf))) die(ret);*/
+            /*do_decrypt(dec_ctx, buf, out);*/
+			if ((ret = do_decrypt(dec_ctx, text, buf))) die(ret);
+			do_encrypt(enc_ctx, buf, out);
+			/* end 2014.05.07 zhengxie bug here, should get cypher in and cypher out */
             break;
 
         case SQLUDF_FINAL_CALL:
@@ -121,7 +125,7 @@ void SQL_API_FN db2_update(
             }
 
 
-                fputs( db_log, l->logfile );
+			fputs( db_log, l->logfile );
 
             destroy_encrypt_context(enc_ctx);
             destroy_decrypt_context(dec_ctx);
