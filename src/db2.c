@@ -62,6 +62,8 @@ void SQL_API_FN db2_update(
             if ((ret = init_encrypt_context(enc_ctx, colid))) die(ret);
             l->enc_ctx = enc_ctx;
 
+			dbglog("init encrypt context done!\n");
+
             // init decrypt context
             if (!(dec_ctx = calloc(1, sizeof(decrypt_context_t))))
                     die(ERROR_NOMEM);
@@ -106,7 +108,7 @@ void SQL_API_FN db2_update(
 
 			/* beg 2014.04.23 zhenxie insert log to db */
 			sprintf( db_log,
-                    "\"[%s] Encrypt finished, %lu row in %ds\"\n",
+                    "\"[%s] Update finished, %lu row in %ds\"\n",
                     timestamp(buf), l->row_count,
                     (int)(difftime(l->end_time, l->begin_time)));
 
@@ -298,7 +300,7 @@ void SQL_API_FN db2_decrypt(
             if (!(ctx = calloc(1, sizeof(decrypt_context_t)))) die(ERROR_NOMEM);
             if ((ret = init_decrypt_context(ctx))) die(ret);
             l->dec_ctx = ctx;
-			dbglog("init encrypt context done!\n");
+			dbglog("init decrypt context done!\n");
 
         case SQLUDF_NORMAL_CALL:
             // Do the encrypt

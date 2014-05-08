@@ -396,7 +396,7 @@ int do_decrypt(decrypt_context_t * ctx, const char * in, char * out)
         flatten_numstring(buf_dec, out + encp);
     }
 
-	dbglog("decrypt done!");
+	dbglog("decrypt done!\n");
     return 0;
 return_plain:
     strcpy(out, in);
