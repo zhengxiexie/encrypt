@@ -173,6 +173,8 @@ int do_encrypt(encrypt_context_t * ctx, const char * in, char * out)
 
     column_info_t * info = &ctx->info;
     if (info->hold_bytes < in_len) {
+		dbglog("source data[%s] len[%d]\n", in, in_len);
+
         // keep first hold_bytes byte plaintext
         strncpy(out, in, info->hold_bytes);
 
@@ -194,17 +196,25 @@ int do_encrypt(encrypt_context_t * ctx, const char * in, char * out)
             enc_len = in_len - info->hold_bytes;
         }
 
+
         // encrypt the rest
         crypto_func * f = (ctx->how == CIPHER_BUILTIN)?
                            ctx->impl.builtin->enc_func:
                            ctx->impl.userdef->cipher;
         out_len = f(ctx->enc_ctx, to_be_enc, enc_len, (uint8_t *)buf_enc);
 
-		/*to_be_enc-输入, buf_enc-输出*/
-        loghex(to_be_enc, buf_enc, out_len);
+		dbglog("after encrypt\n");
+        loghex( buf_enc, out_len);
 
         // base64 encode it and store it into out
-        base64_encode(out + info->hold_bytes + 3, (uint8_t *)buf_enc, out_len);
+        int base64_len = base64_encode(out + info->hold_bytes + 3, (uint8_t *)buf_enc, out_len);
+
+		dbglog("after base64_encode\n");
+		dbglog("base64[%s] len[%d]\n", out + info->hold_bytes + 3, base64_len);
+
+		dbglog("ultimate data to db\n");
+		dbglog("destination data[%s] len[%d]\n", out, strlen(out));
+
     } else {
         strcpy(out, in);
     }
@@ -377,17 +387,18 @@ int do_decrypt(decrypt_context_t * ctx, const char * in, char * out)
     memset(buf,     0, sizeof(buf));
     memset(buf_dec, 0, sizeof(buf_dec));
 
+	dbglog("source data[%s] len[%d]\n", in, in_len);
+
     // base64 decode
     enc_len = base64_decode(buf, in + encp + 3);
+	dbglog("after base64_decode\n");
+    loghex(buf, enc_len);
 
     // and decrypt
     crypto_func * f = dec_ctx->how == CIPHER_BUILTIN?
                       dec_ctx->impl.builtin->dec_func:
                       dec_ctx->impl.userdef->cipher;
     f(dec_ctx->dec_ctx, buf, enc_len, buf_dec);
-
-	/*buf-输入, buf_dec输出*/
-    loghex(buf_dec, buf, enc_len);
 
     // flatten?
     if (data_type == 0x03) {
@@ -396,10 +407,11 @@ int do_decrypt(decrypt_context_t * ctx, const char * in, char * out)
         flatten_numstring(buf_dec, out + encp);
     }
 
+	dbglog("after decrypt\n");
+	dbglog("destination data[%s] len[%d]\n", out, strlen(out) );
 	dbglog("decrypt done!\n");
     return 0;
 return_plain:
     strcpy(out, in);
     return 0;
 }
-

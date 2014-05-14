@@ -27,7 +27,7 @@
     fclose(__l); \
 } while (0)
 
-#  define loghex(tag, p, len) do { \
+#  define loghex( p, len) do { \
     char __bytes[2048]; \
     int __i = 0; \
     for (__i = 0; __i < (len); __i++) { \
@@ -35,7 +35,7 @@
         __bytes[__i * 2 + 1] = "0123456789abcdef"[(int)p[__i] % 16]; \
     } \
     __bytes[__i * 2] = 0; \
-    dbglog("[plain:%s] [%d bytes] [cypher:%s]\n", tag, len,  __bytes); \
+    dbglog("cypher[%s] len[%d]\n", __bytes, len); \
 } while(0)
 
 #else
