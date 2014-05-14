@@ -185,15 +185,19 @@ int do_encrypt(encrypt_context_t * ctx, const char * in, char * out)
         switch (info->type) {
         case TYPE_NUMSTRING:
             out[info->hold_bytes] = 0x04;
-            if ((ret = compress_numstring(in + info->hold_bytes, buf)))
+			if ((ret = compress_numstring(in + info->hold_bytes, buf)))
+			/*if ((ret = compress_numstring(in + info->hold_bytes + 3, buf)))*/
                     return ret;
             to_be_enc = buf;
-            enc_len = (in_len - info->hold_bytes + 1) / 2;
+			enc_len = (in_len - info->hold_bytes + 1) / 2;
+			/*enc_len = (in_len - info->hold_bytes - 3 + 1) / 2;*/
             break;
         case TYPE_STRING:
             out[info->hold_bytes] = 0x03;
-            to_be_enc = ((uint8_t *)in + info->hold_bytes);
-            enc_len = in_len - info->hold_bytes;
+			to_be_enc = ((uint8_t *)in + info->hold_bytes);
+			enc_len = in_len - info->hold_bytes;
+			/*to_be_enc = ((uint8_t *)in + info->hold_bytes + 3);*/
+			/*enc_len = in_len - info->hold_bytes - 3;*/
         }
 
 
