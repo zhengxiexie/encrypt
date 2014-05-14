@@ -342,3 +342,72 @@ error:
     strcpy(SQLUDF_STATE, "38900");
     return;
 }
+
+void SQL_API_FN db2_base64_decode(
+    SQLUDF_VARCHAR * text,
+    SQLUDF_VARCHAR * out,
+    SQLUDF_NULLIND * text_null,
+    SQLUDF_NULLIND * out_null,
+    SQLUDF_TRAIL_ARGS_ALL) {
+
+    struct local_t    * l   = (struct local_t *)(SQLUDF_SCRAT->data);
+    decrypt_context_t * ctx = l->dec_ctx;
+
+    int errcode = 0, line = 0, ret = 0;
+    char buf[1024];
+	char db_log[1024];
+
+    switch (SQLUDF_CALLT) {
+        case SQLUDF_FIRST_CALL:
+            // First call, init everything
+			dbglog("enter into db2_base64_decode\n");
+            sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX);
+            l->logfile    = fopen(buf, "a+");
+            l->begin_time = time(NULL);
+
+            // init decrypt context
+            if (!(ctx = calloc(1, sizeof(decrypt_context_t)))) die(ERROR_NOMEM);
+            if ((ret = init_decrypt_context(ctx))) die(ret);
+            l->dec_ctx = ctx;
+			dbglog("init decrypt context done!\n");
+
+        case SQLUDF_NORMAL_CALL:
+            // Do the encrypt
+            do_base64_decode(ctx, text, out);
+            *out_null = 0;
+            l->row_count++;
+            break;
+        case SQLUDF_FINAL_CALL:
+            l->end_time = time(NULL);
+
+			sprintf( db_log,
+                    "\"[%s] Decrypt finished, %ld row in %ds\"\n",
+                    timestamp(buf), l->row_count,
+                    (int)(difftime(l->end_time, l->begin_time))
+					);
+			/*INSERT_DB_LOG( db_log )*/
+
+            // write log if there is one
+            if (l->logfile) {
+                /*fprintf(l->logfile,*/
+                    /*"[%s] Decrypt finished, %ld row in %ds\n",*/
+                    /*timestamp(buf), l->row_count,*/
+                    /*(int)(difftime(l->end_time, l->begin_time)));*/
+				fputs( db_log, l->logfile );
+
+                fclose(l->logfile);
+            }
+            destroy_decrypt_context(ctx);
+        default: break;
+    }
+
+    return;
+
+error:
+    if (ctx) destroy_decrypt_context(ctx);
+    // write error messages
+    snprintf(SQLUDF_MSGTX, 69,
+        "[NOT A BUG] %d:%d %s", line, errcode, errmsg[errcode]);
+    strcpy(SQLUDF_STATE, "38900");
+    return;
+}

@@ -71,4 +71,6 @@ int init_decrypt_context(decrypt_context_t * ctx);
 void destroy_decrypt_context(decrypt_context_t * ctx);
 int do_decrypt(decrypt_context_t * ctx, const char * in, char * out);
 
+// public method
+int do_base64_decode(decrypt_context_t * ctx, const char * in, char * out);
 #endif

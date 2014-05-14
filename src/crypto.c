@@ -419,3 +419,80 @@ return_plain:
     strcpy(out, in);
     return 0;
 }
+
+int do_base64_decode(decrypt_context_t * ctx, const char * in, char * out)
+{
+    uint8_t buf[2048], buf_dec[2048];
+    int  data_type = 0, in_len = 0, policy = 0, encp = 0, enc_len = 0;
+
+	/* beg 2014.04.23 zhengxie modify a bug */
+	int found_policy = 0;
+	/* end 2014.04.23 zhengxie modify a bug */
+
+    // in sanity check... Magic here
+    if (!in) goto return_plain;
+    in_len = strlen(in);
+    if (in_len < 4) goto return_plain;
+
+    // findout where to start decrypt
+    for (encp = 0; encp < in_len - 3; encp++)
+   	{
+        if (in[encp] == 0x03 || in[encp] == 0x04) {
+            data_type = in[encp];
+            policy   = ((uint8_t)in[encp + 1] - 1) * 255
+                     + ((uint8_t)in[encp + 2] - 1);
+
+			/* beg 2014.04.23 zhengxie modify a bug */
+			found_policy = 1;
+			/* end 2014.04.23 zhengxie modify a bug */
+            break;
+        }
+    }
+
+	/* beg 2014.04.23 zhengxie modify a bug */
+	if( !found_policy ){
+		goto return_plain;
+	}
+	/* end 2014.04.23 zhengxie modify a bug */
+
+    decrypt_context_t * dec_ctx = find_or_new_dec_ctx(ctx, policy);
+
+    if (!dec_ctx) goto return_plain;
+
+    // copy the plain part
+    strncpy(out, in, encp);
+    memset(buf,     0, sizeof(buf));
+    memset(buf_dec, 0, sizeof(buf_dec));
+
+	dbglog("source data[%s] len[%d]\n", in, in_len);
+
+    // base64 decode
+    enc_len = base64_decode(buf, in + encp + 3);
+	dbglog("after base64_decode\n");
+
+    char __bytes[2048]; \
+    int __i = 0;
+    for (__i = 0; __i < (enc_len); __i++) {
+        __bytes[__i * 2 + 0] = "0123456789abcdef"[(int)buf[__i] / 16];
+        __bytes[__i * 2 + 1] = "0123456789abcdef"[(int)buf[__i] % 16];
+    }
+    __bytes[__i * 2] = 0;
+    dbglog("cypher[%s] len[%d]\n", __bytes, enc_len);
+
+	strcpy(out + encp, (const char *)__bytes);
+
+    // flatten?
+    /*if (data_type == 0x03) {*/
+        /*strcpy(out + encp, (const char *)__bytes);*/
+    /*} else if (data_type == 0x04) {*/
+        /*flatten_numstring(buf_dec, out + encp);*/
+    /*}*/
+
+	dbglog("after do_base64_decode\n");
+	dbglog("destination data[%s] len[%d]\n", out, strlen(out) );
+	dbglog("do_base64_decode done!\n");
+    return 0;
+return_plain:
+    strcpy(out, in);
+    return 0;
+}
