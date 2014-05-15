@@ -213,3 +213,21 @@ error:
     return NULL;
 }
 
+char * ora_base64_decode(OCIExtProcContext * oci_ctx, char * in) {
+    int ret = 0, line = 0, errcode = 0;
+    // init session_cache if not been inited
+    if ((ret = session_init(oci_ctx))) die(ret);
+
+    decrypt_context_t * ctx = session_cache->dec_ctx;
+    if (!ctx) die(ERROR_NOMEM);
+
+    char buf[2048];
+    do_base64_decode(ctx, in, buf);
+    char * out = OCIExtProcAllocCallMemory(oci_ctx, strlen(buf) + 1);
+    strcpy(out, buf);
+    return out;
+
+error:
+    OCIExtProcRaiseExcpWithMsg(oci_ctx, 20010, (text*)"Fail", 0);
+    return NULL;
+}

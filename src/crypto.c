@@ -262,6 +262,8 @@ static decrypt_context_t * read_policy_pputil(int policy) {
     // read policy info from pputil
     int policy_found = 0;
     sprintf(buf, "%s/" PREFIX "/pputil policy %d", getenv("HOME"), policy);
+	dbglog("call: %s\n", buf);
+
     FILE * pipe = popen(buf, "r");
     if (!pipe) return NULL;
     get_line(pipe, buf, 10);
