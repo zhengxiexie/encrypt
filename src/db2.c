@@ -52,7 +52,8 @@ void SQL_API_FN db2_update(
 			dbglog("enter into db2_update\n");
             // First call, init everything
             memset(l, 0, sizeof(struct local_t));
-            sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME"));
+			sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")); // linux
+			/*sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME")); // windows*/
             l->logfile    = fopen(buf, "a+");
             l->begin_time = time(NULL);
 
@@ -142,7 +143,8 @@ error:
             "\"[%s] ERROR: UPDATE fail colid: %s, Message: %s\"\n",
             timestamp(buf), colid, errmsg[errcode]);
 
-	INSERT_DB_LOG( db_log )
+	insert_log_db( db_log );
+
 	/* end 2014.04.23 zhenxie insert log to db */
     if (l->logfile) {
         /*fprintf(l->logfile,*/
@@ -188,7 +190,8 @@ void SQL_API_FN db2_encrypt(
 			dbglog("enter into db2_encrypt\n");
             // First call, init everything
             memset(l, 0, sizeof(struct local_t));
-            sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME"));
+			sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")); // linux
+			/*sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME")); // windows*/
             l->logfile    = fopen(buf, "a+");
             l->begin_time = time(NULL);
 
@@ -258,7 +261,8 @@ error:
 		sprintf( db_log,
             "\"[%s] ERROR: Encrypt fail. colid: %s, Message: %s\"\n",
             timestamp(buf), colid, errmsg[errcode]);
-		INSERT_DB_LOG( db_log )
+
+		insert_log_db( db_log );
 
 		fputs( db_log, l->logfile );
         /*fprintf(l->logfile,*/
@@ -292,7 +296,8 @@ void SQL_API_FN db2_decrypt(
         case SQLUDF_FIRST_CALL:
             // First call, init everything
 			dbglog("enter into db2_decrypt\n");
-            sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX);
+			sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX); // linux
+			/*sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME"), PREFIX); // windows*/
             l->logfile    = fopen(buf, "a+");
             l->begin_time = time(NULL);
 

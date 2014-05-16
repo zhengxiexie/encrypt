@@ -128,7 +128,9 @@ int get_dbconfig(char * database, char * username, char * password, char * schem
     int pos_w     = 0;
     int pos       = 0;
 
-    sprintf(line, "%s/%s/privacyprot.cfg", getenv("HOME"), PREFIX);
+	sprintf(line, "%s/%s/privacyprot.cfg", getenv("HOME"), PREFIX); // linux
+    /*sprintf(line, "%s/%s/privacyprot.cfg", getenv("HOME")==NULL?"C:":getenv("HOME"), PREFIX); // windows*/
+	
     cfg_file = fopen(line, "r");
 
     if (!cfg_file) return ERROR_CFGFILE;
@@ -241,7 +243,9 @@ int insert_log_db( const char * db_log )
 {
 	int ret = 0;
 	char buf[1024];
-	snprintf(buf, 1024, "%s/" PREFIX "/pputil log %s", getenv("HOME"), db_log);
+	snprintf(buf, 1024, "%s/" PREFIX "/pputil log %s", getenv("HOME"), db_log); // linux
+	/*snprintf(buf, 1024, "%s/" PREFIX "/pputil log %s", getenv("HOME")==NULL?"C:":getenv("HOME"), db_log); // windows*/
+	
 	dbglog("call: %s\n", buf);
 	FILE * pipe = popen(buf, "r");
 	if (!pipe) {

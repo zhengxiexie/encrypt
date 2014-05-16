@@ -243,7 +243,9 @@ int main(int argc, char *argv[]) {
     int policy = 0;
     int type = 0;
 
-    sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX);
+	sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX); // linux
+    /*sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME"), PREFIX); // windows*/
+	
     logfile = fopen(buf, "a+");
 
     if (getenv("TERM")) die(ERROR_DBUTILS_SHELL);

@@ -37,7 +37,9 @@ static int do_session_init() {
     char buf[1024];
     session_cache = calloc(1, sizeof(session_cache_t));
     if (!session_cache) return ERROR_NOMEM;
-    sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME"));
+	sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")); // linux
+    /*sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME")); // windows*/
+	
     session_cache->logfile = fopen(buf, "a+");
     session_cache->dec_ctx = calloc(1, sizeof(decrypt_context_t));
     if (!session_cache->dec_ctx) return ERROR_NOMEM;

@@ -1,11 +1,18 @@
 MAKE    = make
 
-# gcc配置
+# gcc配置(linux)
 CC      = gcc
 CFLAGS  = -O2 -m64 -D_REENTREANT -Wall
 LDFLAGS = -ldl -m64 -Wall
 PIC     = -fPIC
 SHARED  = -shared
+
+# gcc配置(windows)
+#CC      = gcc
+#CFLAGS  = -O2 -m32 -D_REENTREANT -Wall -DNO_LIBDL -Wl,--add-stdcall-alias -shared -D__int64="long long"
+#LDFLAGS = -m32 -Wall -Wl,--add-stdcall-alias -shared -D__int64="long long"
+#SHARED  = -shared
+
 
 # Solaris suncc 配置
 # CC      = cc

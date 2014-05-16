@@ -7,14 +7,22 @@ objects_jni  := jni.o utils.o error.o crypto.o
 objects_ora  := oracle.o utils.o error.o crypto.o
 
 #CFLAGS += -Werror #-DNO_LIBDL #-DNO_DEBUG
+#linux
 CFLAGS += -Wall #-DNO_LIBDL #-DNO_DEBUG
+#windows
+#CFLAGS += -Wall -DNO_LIBDL -D__int64=uint32_t #-DNO_DEBUG
+
 
 .PHONY: all clean core db2 jni oracle
 
 all: $(DBTYPE) jni pputil
 
 db2: privacy_db2.so
+#linux
 jni: privacy_jni.so
+#windows
+#jni: privacy_jni.dll
+
 oracle: privacy_ora.so
 
 pputil: $(objects_dbutils)
@@ -26,7 +34,10 @@ privacy_ora.so: $(objects_ora)
 privacy_db2.so: $(objects_db2)
 	$(CC) $(SHARED) $(DB_LDFLAGS) $(LDFLAGS) $(objects_db2) $(OPENSSL_LIB) -o $@
 
+#linux
 privacy_jni.so: $(objects_jni)
+#windows
+#privacy_jni.dll: $(objects_jni)
 	$(CC) $(SHARED) $(LDFLAGS) $(objects_jni) $(PIC) $(OPENSSL_LIB) -o $@
 
 %.o: %.c

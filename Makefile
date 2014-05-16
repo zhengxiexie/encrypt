@@ -21,12 +21,18 @@ libcrypto.a: openssl-1.0.1f.tar.gz
 
 jni: show
 	+cd src && $(MAKE) jni
+	#linux
 	cp src/privacy_jni.so dist
+	#windows
+	#cp src/privacy_jni.dll dist
 
 src:
 	mkdir -p dist
 	+cd src && $(MAKE) $(DBTYPE)
+	#linux
 	cp src/*.so dist
+	#windows
+	#cp src/*.dll dist
 
 clean:
 	+cd src && $(MAKE) clean
@@ -60,4 +66,3 @@ show:
 		echo "LD         = $(LD)"                               ; \
 		echo "DBTYPE     = $(DBTYPE)"                           ; \
 	) | tee -a make-config.log
-

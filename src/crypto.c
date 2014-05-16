@@ -105,7 +105,8 @@ int init_encrypt_context(encrypt_context_t * ctx, const char * colid) {
 #ifndef NO_LIBDL
         // try to find userdefined algorithm
         char buf[256];
-        const char * home_dir = getenv("HOME");
+		const char * home_dir = getenv("HOME"); // linux
+		/*const char * home_dir = getenv("HOME")==NULL?"C:":getenv("HOME"); // windows*/
         void * handle = NULL;
         int found_userdef = 0, i = 0;
 
@@ -152,7 +153,9 @@ void destroy_encrypt_context(encrypt_context_t * ctx) {
             break;
         case CIPHER_USERDEF:
             ctx->impl.userdef->ctx_free(ctx->enc_ctx);
+#ifndef NO_LIBDL
             dlclose(ctx->impl.userdef->handle);
+#endif
             free(ctx->impl.userdef);
             break;
         }
@@ -186,18 +189,14 @@ int do_encrypt(encrypt_context_t * ctx, const char * in, char * out)
         case TYPE_NUMSTRING:
             out[info->hold_bytes] = 0x04;
 			if ((ret = compress_numstring(in + info->hold_bytes, buf)))
-			/*if ((ret = compress_numstring(in + info->hold_bytes + 3, buf)))*/
                     return ret;
             to_be_enc = buf;
 			enc_len = (in_len - info->hold_bytes + 1) / 2;
-			/*enc_len = (in_len - info->hold_bytes - 3 + 1) / 2;*/
             break;
         case TYPE_STRING:
             out[info->hold_bytes] = 0x03;
 			to_be_enc = ((uint8_t *)in + info->hold_bytes);
 			enc_len = in_len - info->hold_bytes;
-			/*to_be_enc = ((uint8_t *)in + info->hold_bytes + 3);*/
-			/*enc_len = in_len - info->hold_bytes - 3;*/
         }
 
 
@@ -244,7 +243,9 @@ void destroy_decrypt_context(decrypt_context_t * ctx) {
         case CIPHER_USERDEF:
             if (ctx->dec_ctx) ctx->impl.userdef->ctx_free(ctx->dec_ctx);
             if (ctx->impl.userdef) {
+#ifndef NO_LIBDL
                 if (ctx->impl.userdef->handle) dlclose(ctx->impl.userdef->handle);
+#endif
                 free(ctx->impl.userdef);
             }
             break;
@@ -261,7 +262,8 @@ static decrypt_context_t * read_policy_pputil(int policy) {
 
     // read policy info from pputil
     int policy_found = 0;
-    sprintf(buf, "%s/" PREFIX "/pputil policy %d", getenv("HOME"), policy);
+	sprintf(buf, "%s/" PREFIX "/pputil policy %d", getenv("HOME"), policy); // linux
+	/*sprintf(buf, "%s/" PREFIX "/pputil policy %d", getenv("HOME")==NULL?"C:":getenv("HOME"), policy); // windows*/
 	dbglog("call: %s\n", buf);
 
     FILE * pipe = popen(buf, "r");
@@ -293,7 +295,8 @@ static decrypt_context_t * read_policy_pputil(int policy) {
     } else {
 #ifndef NO_LIBDL
         // try to load userdef lib
-        const char * home_dir = getenv("HOME");
+		const char * home_dir = getenv("HOME"); // linux
+		/*const char * home_dir = getenv("HOME")==NULL?"C:":getenv("HOME"); // windows*/
         void * handle = NULL;
         int found_userdef = 0, i = 0;
 
