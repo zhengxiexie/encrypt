@@ -2,8 +2,8 @@ MAKE    = make
 
 # gcc配置(linux)
 CC      = gcc
-CFLAGS  = -O2 -m64 -D_REENTREANT -Wall
-LDFLAGS = -ldl -m64 -Wall
+CFLAGS  = -O2 -m32 -D_REENTREANT -Wall
+LDFLAGS = -ldl -m32 -Wall
 PIC     = -fPIC
 SHARED  = -shared
 

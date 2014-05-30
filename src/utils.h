@@ -40,7 +40,7 @@
 
 #else
 #  define dbglog(...)
-#  define loghex(tag, p, len)
+#  define loghex( p, len)
 #endif
 
 /* beg 2014.04.23 zhenxie insert log to db */

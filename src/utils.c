@@ -245,7 +245,7 @@ int insert_log_db( const char * db_log )
 	char buf[1024];
 	snprintf(buf, 1024, "%s/" PREFIX "/pputil log %s", getenv("HOME"), db_log); // linux
 	/*snprintf(buf, 1024, "%s/" PREFIX "/pputil log %s", getenv("HOME")==NULL?"C:":getenv("HOME"), db_log); // windows*/
-	
+
 	dbglog("call: %s\n", buf);
 	FILE * pipe = popen(buf, "r");
 	if (!pipe) {

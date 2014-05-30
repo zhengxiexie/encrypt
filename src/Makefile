@@ -8,7 +8,8 @@ objects_ora  := oracle.o utils.o error.o crypto.o
 
 #CFLAGS += -Werror #-DNO_LIBDL #-DNO_DEBUG
 #linux
-CFLAGS += -Wall #-DNO_LIBDL #-DNO_DEBUG
+#CFLAGS += -Wall #-DNO_LIBDL #-DNO_DEBUG
+CFLAGS += -Wall -DNO_DEBUG
 #windows
 #CFLAGS += -Wall -DNO_LIBDL -D__int64=uint32_t #-DNO_DEBUG
 

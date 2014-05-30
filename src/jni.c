@@ -21,7 +21,7 @@ JNIEXPORT jlong JNICALL Java_com_asiainfo_biframe_privacyprotection_util_Decrypt
     char buf[1024];
     /*sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")); // linux*/
     sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME")); // windows
-	
+
     init_decrypt_context(ctx);
 
     // init static values

@@ -37,7 +37,7 @@ src:
 clean:
 	+cd src && $(MAKE) clean
 	rm -f dist/*
-	#rm -f libcrypto.a
+	rm -f libcrypto.a
 
 cfg:
 	@(                                         \
