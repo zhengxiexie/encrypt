@@ -43,6 +43,9 @@ void SQL_API_FN db2_update(
     decrypt_context_t * dec_ctx = l->dec_ctx;
     char buf[1024];
 	char db_log[1024];
+	char day[12];
+
+	get_day(day);
 
     if (*colid_null || !colid[0]) die(ERROR_NULLCOLID);
 
@@ -52,7 +55,7 @@ void SQL_API_FN db2_update(
 			dbglog("enter into db2_update\n");
             // First call, init everything
             memset(l, 0, sizeof(struct local_t));
-			sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")); // linux
+			sprintf(buf, "%s/" PREFIX "/privacyprot" "_%s" ".log", getenv("HOME"), day); // linux
 			/*sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME")); // windows*/
             l->logfile    = fopen(buf, "a+");
             l->begin_time = time(NULL);
@@ -181,6 +184,9 @@ void SQL_API_FN db2_encrypt(
     encrypt_context_t * ctx = l->enc_ctx;
     char buf[1024];
 	char db_log[1024];
+	char day[12];
+
+	get_day(day);
 
     if (*colid_null || !colid[0]) die(ERROR_NULLCOLID);
 
@@ -190,7 +196,7 @@ void SQL_API_FN db2_encrypt(
 			dbglog("enter into db2_encrypt\n");
             // First call, init everything
             memset(l, 0, sizeof(struct local_t));
-			sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")); // linux
+			sprintf(buf, "%s/" PREFIX "/privacyprot" "_%s" ".log", getenv("HOME"), day); // linux
 			/*sprintf(buf, "%s/" PREFIX "/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME")); // windows*/
             l->logfile    = fopen(buf, "a+");
             l->begin_time = time(NULL);
@@ -291,12 +297,15 @@ void SQL_API_FN db2_decrypt(
     int errcode = 0, line = 0, ret = 0;
     char buf[1024];
 	char db_log[1024];
+	char day[12];
+
+	get_day(day);
 
     switch (SQLUDF_CALLT) {
         case SQLUDF_FIRST_CALL:
             // First call, init everything
 			dbglog("enter into db2_decrypt\n");
-			sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX); // linux
+			sprintf(buf, "%s/%s/privacyprot" "_%s" ".log", getenv("HOME"), PREFIX, day ); // linux
 			/*sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME")==NULL?"C:":getenv("HOME"), PREFIX); // windows*/
             l->logfile    = fopen(buf, "a+");
             l->begin_time = time(NULL);
@@ -361,12 +370,15 @@ void SQL_API_FN db2_base64_decode(
     int errcode = 0, line = 0, ret = 0;
     char buf[1024];
 	char db_log[1024];
+	char day[12];
+
+	get_day(day);
 
     switch (SQLUDF_CALLT) {
         case SQLUDF_FIRST_CALL:
             // First call, init everything
 			dbglog("enter into db2_base64_decode\n");
-            sprintf(buf, "%s/%s/privacyprot.log", getenv("HOME"), PREFIX);
+            sprintf(buf, "%s/%s/privacyprot" "_%s" ".log", getenv("HOME"), PREFIX, day);
             l->logfile    = fopen(buf, "a+");
             l->begin_time = time(NULL);
 

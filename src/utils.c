@@ -263,3 +263,9 @@ int insert_log_db( const char * db_log )
 	}
 }
 /* end 2014.04.23 zhenxie insert log to db */
+
+void get_day( char * day )
+{
+	time_t tmp_time = time(NULL);
+	strftime(day, 10, "%Y-%m-%d", localtime(&tmp_time));
+}

@@ -70,4 +70,5 @@ int check_file_md5(const char *, const char *);
 int insert_log_db( const char * );
 /* end 2014.04.23 zhenxie insert log to db */
 
+void get_day( char * );
 #endif
